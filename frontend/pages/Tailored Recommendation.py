@@ -4,7 +4,15 @@ from Image.ImageFinder import get_images_links as find_image
 import pandas as pd
 from streamlit_echarts import st_echarts
 
-st.set_page_config(page_title="Tailored Recommendation", page_icon="🥗",layout="wide")
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,  # Set the logging level (e.g., INFO)
+    format='%(asctime)s - %(levelname)s - %(message)s'  # Define the log message format
+)
+
+st.set_page_config(page_title="Tailored Recommendation", page_icon="🍎",layout="wide")
+
 nutrition_values=['Calories','FatContent','SaturatedFatContent','CholesterolContent','SodiumContent','CarbohydrateContent','FiberContent','SugarContent','ProteinContent']
 if 'generated' not in st.session_state:
     st.session_state.generated = False
@@ -76,7 +84,7 @@ class Display:
                 if recipe['Name']==selected_recipe_name:
                     selected_recipe=recipe
             options = {
-        "title": {"text": "Nutrition values", "subtext": f"{selected_recipe_name}", "left": "center"},
+        "title": {"text": "Nutrition values", "subtext": " ", "left": "center"},
         "tooltip": {"trigger": "item"},
         "legend": {"orient": "vertical", "left": "left",},
         "series": [
@@ -104,30 +112,33 @@ st.markdown(title, unsafe_allow_html=True)
 
 display=Display()
 
-with st.form("recommendation_form"):
-    st.header('Nutritional values:')
-    Calories = st.slider('Calories', 0, 2000, 500)
-    FatContent = st.slider('FatContent', 0, 100, 50)
-    SaturatedFatContent = st.slider('SaturatedFatContent', 0, 13, 0)
-    CholesterolContent = st.slider('CholesterolContent', 0, 300, 0)
-    SodiumContent = st.slider('SodiumContent', 0, 2300, 400)
-    CarbohydrateContent = st.slider('CarbohydrateContent', 0, 325, 100)
-    FiberContent = st.slider('FiberContent', 0, 50, 10)
-    SugarContent = st.slider('SugarContent', 0, 40, 10)
-    ProteinContent = st.slider('ProteinContent', 0, 40, 10)
-    nutritions_values_list=[Calories,FatContent,SaturatedFatContent,CholesterolContent,SodiumContent,CarbohydrateContent,FiberContent,SugarContent,ProteinContent]
-    st.header('Recommendation options (OPTIONAL):')
-    nb_recommendations = st.slider('Number of recommendations', 5, 20,step=5)
-    generated = st.form_submit_button("Generate")
-if generated:
-    with st.spinner('Generating recommendations...'): 
-        recommendation=Recommendation(nutritions_values_list,nb_recommendations)
-        recommendations=recommendation.generate()
-        st.session_state.recommendations=recommendations
-    st.session_state.generated=True 
+def get_user_input_tailored():
+    with st.form("recommendation_form"):
+        st.header('Nutritional values:')
+        Calories = st.slider('Calories', 0, 2000, 500)
+        FatContent = st.slider('FatContent', 0, 100, 50)
+        SaturatedFatContent = st.slider('SaturatedFatContent', 0, 13, 0)
+        CholesterolContent = st.slider('CholesterolContent', 0, 300, 0)
+        SodiumContent = st.slider('SodiumContent', 0, 2300, 400)
+        CarbohydrateContent = st.slider('CarbohydrateContent', 0, 325, 100)
+        FiberContent = st.slider('FiberContent', 0, 50, 10)
+        SugarContent = st.slider('SugarContent', 0, 40, 10)
+        ProteinContent = st.slider('ProteinContent', 0, 40, 10)
+        nutritions_values_list=[Calories,FatContent,SaturatedFatContent,CholesterolContent,SodiumContent,CarbohydrateContent,FiberContent,SugarContent,ProteinContent]
+        st.header('Recommendation options (OPTIONAL):')
+        nb_recommendations = st.slider('Number of recommendations', 5, 20,step=5)
+        generated = st.form_submit_button("Generate")
+    if generated:
+        with st.spinner('Generating recommendations...'): 
+            recommendation=Recommendation(nutritions_values_list,nb_recommendations)
+            recommendations=recommendation.generate()
+            st.session_state.recommendations=recommendations
+        st.session_state.generated=True 
 
-if st.session_state.generated:
-    with st.container():
-        display.display_recommendation(st.session_state.recommendations)
-    with st.container():
-        display.display_overview(st.session_state.recommendations)
+    if st.session_state.generated:
+        with st.container():
+            display.display_recommendation(st.session_state.recommendations)
+        with st.container():
+            display.display_overview(st.session_state.recommendations)
+    logging.info("Input and forward success")
+get_user_input_tailored()

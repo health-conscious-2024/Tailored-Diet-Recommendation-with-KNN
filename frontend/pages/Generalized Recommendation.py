@@ -5,7 +5,14 @@ from random import uniform as rnd
 from Image.ImageFinder import get_images_links as find_image
 from streamlit_echarts import st_echarts
 
-st.set_page_config(page_title="Generalized Recommendation", page_icon="🥗",layout="wide")
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,  # Set the logging level (e.g., INFO)
+    format='%(asctime)s - %(levelname)s - %(message)s'  # Define the log message format
+)
+
+st.set_page_config(page_title="Generalized Recommendation", page_icon="🏃‍♂️",layout="wide")
 
 nutritions_values=['Calories','FatContent','SaturatedFatContent','CholesterolContent','SodiumContent','CarbohydrateContent','FiberContent','SugarContent','ProteinContent']
 
@@ -235,44 +242,47 @@ display=Display()
 title="<h1 style='text-align: center;'>Generalized Recommendation</h1>"
 st.markdown(title, unsafe_allow_html=True)
 
-with st.form("recommendation_form"):
-    st.write("Modify the values and click the Generate button to use")
-    age = st.number_input('Age',min_value=14, max_value=120, step=1)
-    height = st.number_input('Height(cm)',min_value=62, max_value=300, step=1)
-    weight = st.number_input('Weight(kg)',min_value=40, max_value=300, step=1)
-    gender = st.radio('Gender',('Male','Female'))
-    activity = st.select_slider('Activity',options=['Little/no exercise', 'Light exercise', 'Moderate exercise (3-5 days/wk)', 'Very active (6-7 days/wk)', 
-    'Extra active (very active & physical job)'])
-    option = st.selectbox('Choose your weight loss plan:',display.plans)
-    st.session_state.weight_loss_option=option
-    weight_loss=display.weights[display.plans.index(option)]
-    number_of_meals=st.slider('Meals per day',min_value=3,max_value=5,step=1,value=3)
-    if number_of_meals==3:
-        meals_calories_perc={'breakfast':0.35,'lunch':0.40,'dinner':0.25}
-    elif number_of_meals==4:
-        meals_calories_perc={'breakfast':0.30,'morning snack':0.05,'lunch':0.40,'dinner':0.25}
-    else:
-        meals_calories_perc={'breakfast':0.30,'morning snack':0.05,'lunch':0.40,'afternoon snack':0.05,'dinner':0.20}
-    generated = st.form_submit_button("Generate")
+def get_user_input_generalized():
+    with st.form("recommendation_form"):
+        st.write("Modify the values and click the Generate button to use")
+        age = st.number_input('Age',min_value=14, max_value=120, step=1)
+        height = st.number_input('Height(cm)',min_value=62, max_value=300, step=1)
+        weight = st.number_input('Weight(kg)',min_value=40, max_value=300, step=1)
+        gender = st.radio('Gender',('Male','Female'))
+        activity = st.select_slider('Activity',options=['Little/no exercise', 'Light exercise', 'Moderate exercise (3-5 days/wk)', 'Very active (6-7 days/wk)', 
+        'Extra active (very active & physical job)'])
+        option = st.selectbox('Choose your weight loss plan:',display.plans)
+        st.session_state.weight_loss_option=option
+        weight_loss=display.weights[display.plans.index(option)]
+        number_of_meals=st.slider('Meals per day',min_value=3,max_value=5,step=1,value=3)
+        if number_of_meals==3:
+            meals_calories_perc={'breakfast':0.35,'lunch':0.40,'dinner':0.25}
+        elif number_of_meals==4:
+            meals_calories_perc={'breakfast':0.30,'morning snack':0.05,'lunch':0.40,'dinner':0.25}
+        else:
+            meals_calories_perc={'breakfast':0.30,'morning snack':0.05,'lunch':0.40,'afternoon snack':0.05,'dinner':0.20}
+        generated = st.form_submit_button("Generate")
 
-if generated:
-    if age < 13:
-        st.warning("Sorry, this tool is only intended for users aged 13 and above.")
-    else:
-        st.session_state.generated=True
-        person = Person(age,height,weight,gender,activity,meals_calories_perc,weight_loss)
-        with st.container():
-            display.display_bmi(person)
-        with st.container():
-            display.display_calories(person)
-        with st.spinner('Generating recommendations...'):     
-            recommendations=person.generate_recommendations()
-            st.session_state.recommendations=recommendations
-            st.session_state.person=person
+    if generated:
+        if age < 13:
+            st.warning("Sorry, this tool is only intended for users aged 13 and above.")
+        else:
+            st.session_state.generated=True
+            person = Person(age,height,weight,gender,activity,meals_calories_perc,weight_loss)
+            with st.container():
+                display.display_bmi(person)
+            with st.container():
+                display.display_calories(person)
+            with st.spinner('Generating recommendations...'):     
+                recommendations=person.generate_recommendations()
+                st.session_state.recommendations=recommendations
+                st.session_state.person=person
 
-if st.session_state.generated:
-    with st.container():
-        display.display_recommendation(st.session_state.person,st.session_state.recommendations)
-        st.success('Recommendation Generated Successfully !', icon="✅")
-    with st.container():
-        display.display_meal_choices(st.session_state.person,st.session_state.recommendations)
+    if st.session_state.generated:
+        with st.container():
+            display.display_recommendation(st.session_state.person,st.session_state.recommendations)
+            st.success('Recommendation Generated Successfully !', icon="✅")
+        with st.container():
+            display.display_meal_choices(st.session_state.person,st.session_state.recommendations)
+    logging.info("Input and forward success")
+get_user_input_generalized()
