@@ -2,14 +2,6 @@ import streamlit as st
 
 st.set_page_config(page_title="Home", page_icon="🥗", layout="wide")
 
-
-# Define the custom CSS for the background image
-
-
-#background-color: blue; # background-image: url("https://github.com/Rohithkumar77/Tailored-Diet-Recommendation-System/blob/main/assets/bg.jpeg");
-# Streamlit app content
-
-
 link = "https://github.com/Rohithkumar77/Tailored-Diet-Recommendation-System/raw/main/assets/Tlogo.png"
 markdown_content = f"""
     <div style='display: flex; align-items: center;'>
@@ -30,7 +22,7 @@ def main():
                                 <img src='{link}' style='width: 40px; height: 40px; border-radius: 50px;'/> 
                                 Diet Recommendation</span>""", unsafe_allow_html=True)
     st.sidebar.info("Welcome to our project diet recommendation. Here you can analyze the nutritional value of food")
-    st.sidebar.subheader("Check out our [Github Repository](https://)")
+    st.sidebar.subheader("Check out our [Github Repository](https://github.com/health-conscious-2024/Tailored-Diet-Recommendation-with-KNN)")
 
     st.subheader("Your personalized diet and nutrition assistant.")
 
@@ -46,20 +38,32 @@ def main():
         col1, col2 = st.columns(2)
         with col1:
             st.image("./assets/diet.jpeg", width=350) 
-            st.write("- Personalized meal plans")
+            st.write("🍽️ Generalized Recommendation")
 
         with col2:
             st.image("./assets/custom.jpeg", width=350)
-            st.write("- Recipe recommendations")
+            st.write("🧑‍🍳 Tailored Recommendation")
 
     # How It Works section
     with st.container():
-        st.header("How It Works")
-        st.write("Our system uses advanced algorithms to analyze your dietary preferences, nutritional goals, and lifestyle. Based on this analysis, it generates personalized meal plans and recipe recommendations that align with your goals. Here's a simple step-by-step process:")
+        st.markdown(f""" 
+        <h4> Simple step-by-step process for Generalized Recommendation: </h4>
+        """, unsafe_allow_html=True)
         steps = [
-            "1. Enter your personal information and dietary preferences.",
-            "2. Select your nutritional goals and any specific dietary restrictions.",
-            "3. The system generates a personalized meal plan and recipe recommendations.",
+            "1. Enter age,height, weight, gender and activity level.",
+            "2. Select your weight loss goal which includes Maintain weight, lose weight and gain weight and select how many meals per day.",
+            "3. Click on generate button and The system generates a personalized meal plan and detail recipe instructions.",
+            "4. Access detailed nutritional information for each recommended recipe."
+            ]
+        for step in steps:
+            st.write(step)
+        st.markdown(f""" 
+        <h4> Simple step-by-step process for Tailored Recommendation: </h4>
+        """, unsafe_allow_html=True)   
+        steps = [
+            "1. Enter calories, fat content,saturated fat content, cholesterol content, sodium content,carbohydrate content, fiber content, sugar content, and protein content.",
+            "2. select how many recommendations  and Click in generate button.",
+            "3. The system generates Detailed recipe instructions .",
             "4. Access detailed nutritional information for each recommended recipe."
             ]
         for step in steps:
