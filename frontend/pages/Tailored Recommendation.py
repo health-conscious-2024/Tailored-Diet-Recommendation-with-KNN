@@ -40,71 +40,77 @@ class Display:
         self.nutrition_values=nutrition_values
 
     def display_recommendation(self,recommendations):
-        st.subheader('Recommended recipes:')
-        if recommendations!=None:
-            rows=len(recommendations)//5
-            for column,row in zip(st.columns(5),range(5)):
-                with column:
-                    for recipe in recommendations[rows*row:rows*(row+1)]:                             
-                        recipe_name=recipe['Name']
-                        expander = st.expander(recipe_name)
-                        recipe_link=recipe['image_link']
-                        recipe_img=f'<div><center><img src={recipe_link} alt={recipe_name}></center></div>'     
-                        nutritions_df=pd.DataFrame({value:[recipe[value]] for value in nutrition_values})      
-                        
-                        expander.markdown(recipe_img,unsafe_allow_html=True)  
-                        expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Nutritional Values (g):</h5>', unsafe_allow_html=True)                   
-                        expander.dataframe(nutritions_df)
-                        expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Ingredients:</h5>', unsafe_allow_html=True)
-                        for ingredient in recipe['RecipeIngredientParts']:
+        try:
+            st.subheader('Recommended recipes:')
+            if recommendations!=None:
+                rows=len(recommendations)//5
+                for column,row in zip(st.columns(5),range(5)):
+                    with column:
+                        for recipe in recommendations[rows*row:rows*(row+1)]:                             
+                            recipe_name=recipe['Name']
+                            expander = st.expander(recipe_name)
+                            recipe_link=recipe['image_link']
+                            recipe_img=f'<div><center><img src={recipe_link} alt={recipe_name}></center></div>'     
+                            nutritions_df=pd.DataFrame({value:[recipe[value]] for value in nutrition_values})      
+                            
+                            expander.markdown(recipe_img,unsafe_allow_html=True)  
+                            expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Nutritional Values (g):</h5>', unsafe_allow_html=True)                   
+                            expander.dataframe(nutritions_df)
+                            expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Ingredients:</h5>', unsafe_allow_html=True)
+                            for ingredient in recipe['RecipeIngredientParts']:
+                                expander.markdown(f"""
+                                            - {ingredient}
+                                """)
+                            expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Recipe Instructions:</h5>', unsafe_allow_html=True)    
+                            for instruction in recipe['RecipeInstructions']:
+                                expander.markdown(f"""
+                                            - {instruction}
+                                """) 
+                            expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Cooking and Preparation Time:</h5>', unsafe_allow_html=True)   
                             expander.markdown(f"""
-                                        - {ingredient}
-                            """)
-                        expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Recipe Instructions:</h5>', unsafe_allow_html=True)    
-                        for instruction in recipe['RecipeInstructions']:
-                            expander.markdown(f"""
-                                        - {instruction}
-                            """) 
-                        expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Cooking and Preparation Time:</h5>', unsafe_allow_html=True)   
-                        expander.markdown(f"""
-                                - Cook Time       : {recipe['CookTime']}min
-                                - Preparation Time: {recipe['PrepTime']}min
-                                - Total Time      : {recipe['TotalTime']}min
-                            """)                       
-        else:
-            st.info('Couldn\'t find any recipes with the specified ingredients', icon="🙁")
+                                    - Cook Time       : {recipe['CookTime']}min
+                                    - Preparation Time: {recipe['PrepTime']}min
+                                    - Total Time      : {recipe['TotalTime']}min
+                                """)                       
+            else:
+                st.info('Couldn\'t find any recipes with the specified ingredients', icon="🙁")
+        except Exception as e:
+            logging.info(f"Something went wrong: {e}")
     def display_overview(self,recommendations):
-        if recommendations!=None:
-            st.subheader('Overview:')
-            col1,col2,col3=st.columns(3)
-            with col2:
-                selected_recipe_name=st.selectbox('Select a recipe',[recipe['Name'] for recipe in recommendations])
-            st.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Nutritional Values:</h5>', unsafe_allow_html=True)
-            for recipe in recommendations:
-                if recipe['Name']==selected_recipe_name:
-                    selected_recipe=recipe
-            options = {
-        "title": {"text": "Nutrition values", "subtext": " ", "left": "center"},
-        "tooltip": {"trigger": "item"},
-        "legend": {"orient": "vertical", "left": "left",},
-        "series": [
-            {
-                "name": "Nutrition values",
-                "type": "pie",
-                "radius": "50%",
-                "data": [{"value":selected_recipe[nutrition_value],"name":nutrition_value} for nutrition_value in self.nutrition_values],
-                "emphasis": {
-                    "itemStyle": {
-                        "shadowBlur": 10,
-                        "shadowOffsetX": 0,
-                        "shadowColor": "rgba(0, 0, 0, 0.5)",
-                    }
-                },
-            }
-        ],
-    }
-            st_echarts(options=options, height="600px",)
-            st.caption('You can select/deselect an item (nutrition value) from the legend.')
+        try:
+            if recommendations!=None:
+                st.subheader('Overview:')
+                col1,col2,col3=st.columns(3)
+                with col2:
+                    selected_recipe_name=st.selectbox('Select a recipe',[recipe['Name'] for recipe in recommendations])
+                st.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Nutritional Values:</h5>', unsafe_allow_html=True)
+                for recipe in recommendations:
+                    if recipe['Name']==selected_recipe_name:
+                        selected_recipe=recipe
+                options = {
+            "title": {"text": "Nutrition values", "subtext": " ", "left": "center"},
+            "tooltip": {"trigger": "item"},
+            "legend": {"orient": "vertical", "left": "left",},
+            "series": [
+                {
+                    "name": "Nutrition values",
+                    "type": "pie",
+                    "radius": "50%",
+                    "data": [{"value":selected_recipe[nutrition_value],"name":nutrition_value} for nutrition_value in self.nutrition_values],
+                    "emphasis": {
+                        "itemStyle": {
+                            "shadowBlur": 10,
+                            "shadowOffsetX": 0,
+                            "shadowColor": "rgba(0, 0, 0, 0.5)",
+                        }
+                    },
+                }
+            ],
+        }
+                st_echarts(options=options, height="600px",)
+                st.caption('You can select/deselect an item (nutrition value) from the legend.')
+        except Exception as e:
+            logging.info(f"Something went wrong: {e}")
 
 title="<h1 style='text-align: center;'>Tailored Recommendation</h1>"
 st.markdown(title, unsafe_allow_html=True)
@@ -140,5 +146,5 @@ def get_user_input_tailored():
             display.display_recommendation(st.session_state.recommendations)
         with st.container():
             display.display_overview(st.session_state.recommendations)
-    logging.info("Input and forward success")
+    logging.info("Input in Tailored and forward success")
 get_user_input_tailored()

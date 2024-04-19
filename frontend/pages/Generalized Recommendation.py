@@ -114,129 +114,135 @@ class Display:
                 st.metric(label=plan,value=f'{round(maintain_calories*weight)} Calories/day',delta=loss,delta_color="inverse")
 
     def display_recommendation(self,person,recommendations):
-        st.header('DIET RECOMMENDATOR')  
-        with st.spinner('Generating recommendations...'): 
-            meals=person.meals_calories_perc
-            st.subheader('Recommended recipes:')
-            for meal_name,column,recommendation in zip(meals,st.columns(len(meals)),recommendations):
-                with column:
-                    st.markdown(f'##### {meal_name.upper()}')    
-                    for recipe in recommendation:
-                        recipe_name=recipe['Name']
-                        expander = st.expander(recipe_name)
-                        recipe_link=recipe['image_link']
-                        recipe_img=f'<div><center><img src={recipe_link} alt={recipe_name}></center></div>'     
-                        nutritions_df=pd.DataFrame({value:[recipe[value]] for value in nutritions_values})      
-                        
-                        expander.markdown(recipe_img,unsafe_allow_html=True)  
-                        expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Nutritional Values (g):</h5>', unsafe_allow_html=True)                   
-                        expander.dataframe(nutritions_df)
-                        expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Ingredients:</h5>', unsafe_allow_html=True)
-                        for ingredient in recipe['RecipeIngredientParts']:
+        try:
+            st.header('DIET RECOMMENDATOR')  
+            with st.spinner('Generating recommendations...'): 
+                meals=person.meals_calories_perc
+                st.subheader('Recommended recipes:')
+                for meal_name,column,recommendation in zip(meals,st.columns(len(meals)),recommendations):
+                    with column:
+                        st.markdown(f'##### {meal_name.upper()}')    
+                        for recipe in recommendation:
+                            recipe_name=recipe['Name']
+                            expander = st.expander(recipe_name)
+                            recipe_link=recipe['image_link']
+                            recipe_img=f'<div><center><img src={recipe_link} alt={recipe_name}></center></div>'     
+                            nutritions_df=pd.DataFrame({value:[recipe[value]] for value in nutritions_values})      
+                            
+                            expander.markdown(recipe_img,unsafe_allow_html=True)  
+                            expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Nutritional Values (g):</h5>', unsafe_allow_html=True)                   
+                            expander.dataframe(nutritions_df)
+                            expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Ingredients:</h5>', unsafe_allow_html=True)
+                            for ingredient in recipe['RecipeIngredientParts']:
+                                expander.markdown(f"""
+                                            - {ingredient}
+                                """)
+                            expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Recipe Instructions:</h5>', unsafe_allow_html=True)    
+                            for instruction in recipe['RecipeInstructions']:
+                                expander.markdown(f"""
+                                            - {instruction}
+                                """) 
+                            expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Cooking and Preparation Time:</h5>', unsafe_allow_html=True)   
                             expander.markdown(f"""
-                                        - {ingredient}
-                            """)
-                        expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Recipe Instructions:</h5>', unsafe_allow_html=True)    
-                        for instruction in recipe['RecipeInstructions']:
-                            expander.markdown(f"""
-                                        - {instruction}
-                            """) 
-                        expander.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Cooking and Preparation Time:</h5>', unsafe_allow_html=True)   
-                        expander.markdown(f"""
-                                - Cook Time       : {recipe['CookTime']}min
-                                - Preparation Time: {recipe['PrepTime']}min
-                                - Total Time      : {recipe['TotalTime']}min
-                            """)                       
+                                    - Cook Time       : {recipe['CookTime']}min
+                                    - Preparation Time: {recipe['PrepTime']}min
+                                    - Total Time      : {recipe['TotalTime']}min
+                                """)  
+        except Exception as e:
+            logging.info(f"something went wrong {e}")
 
-    def display_meal_choices(self,person,recommendations):    
-        st.subheader('Choose your meal composition:')
-        if len(recommendations)==3:
-            breakfast_column,launch_column,dinner_column=st.columns(3)
-            with breakfast_column:
-                breakfast_choice=st.selectbox(f'Choose your breakfast:',[recipe['Name'] for recipe in recommendations[0]])
-            with launch_column:
-                launch_choice=st.selectbox(f'Choose your launch:',[recipe['Name'] for recipe in recommendations[1]])
-            with dinner_column:
-                dinner_choice=st.selectbox(f'Choose your dinner:',[recipe['Name'] for recipe in recommendations[2]])  
-            choices=[breakfast_choice,launch_choice,dinner_choice]     
-        elif len(recommendations)==4:
-            breakfast_column,morning_snack,launch_column,dinner_column=st.columns(4)
-            with breakfast_column:
-                breakfast_choice=st.selectbox(f'Choose your breakfast:',[recipe['Name'] for recipe in recommendations[0]])
-            with morning_snack:
-                morning_snack=st.selectbox(f'Choose your morning_snack:',[recipe['Name'] for recipe in recommendations[1]])
-            with launch_column:
-                launch_choice=st.selectbox(f'Choose your launch:',[recipe['Name'] for recipe in recommendations[2]])
-            with dinner_column:
-                dinner_choice=st.selectbox(f'Choose your dinner:',[recipe['Name'] for recipe in recommendations[3]])
-            choices=[breakfast_choice,morning_snack,launch_choice,dinner_choice]                
-        else:
-            breakfast_column,morning_snack,launch_column,afternoon_snack,dinner_column=st.columns(5)
-            with breakfast_column:
-                breakfast_choice=st.selectbox(f'Choose your breakfast:',[recipe['Name'] for recipe in recommendations[0]])
-            with morning_snack:
-                morning_snack=st.selectbox(f'Choose your morning_snack:',[recipe['Name'] for recipe in recommendations[1]])
-            with launch_column:
-                launch_choice=st.selectbox(f'Choose your launch:',[recipe['Name'] for recipe in recommendations[2]])
-            with afternoon_snack:
-                afternoon_snack=st.selectbox(f'Choose your afternoon:',[recipe['Name'] for recipe in recommendations[3]])
-            with dinner_column:
-                dinner_choice=st.selectbox(f'Choose your  dinner:',[recipe['Name'] for recipe in recommendations[4]])
-            choices=[breakfast_choice,morning_snack,launch_choice,afternoon_snack,dinner_choice] 
-        
-        total_nutrition_values={nutrition_value:0 for nutrition_value in nutritions_values}
-        for choice,meals_ in zip(choices,recommendations):
-            for meal in meals_:
-                if meal['Name']==choice:
-                    for nutrition_value in nutritions_values:
-                        total_nutrition_values[nutrition_value]+=meal[nutrition_value]
-  
-        total_calories_chose=total_nutrition_values['Calories']
-        loss_calories_chose=round(person.calories_calculator()*person.weight_loss)
+    def display_meal_choices(self,person,recommendations):   
+        try: 
+            st.subheader('Choose your meal composition:')
+            if len(recommendations)==3:
+                breakfast_column,launch_column,dinner_column=st.columns(3)
+                with breakfast_column:
+                    breakfast_choice=st.selectbox(f'Choose your breakfast:',[recipe['Name'] for recipe in recommendations[0]])
+                with launch_column:
+                    launch_choice=st.selectbox(f'Choose your launch:',[recipe['Name'] for recipe in recommendations[1]])
+                with dinner_column:
+                    dinner_choice=st.selectbox(f'Choose your dinner:',[recipe['Name'] for recipe in recommendations[2]])  
+                choices=[breakfast_choice,launch_choice,dinner_choice]     
+            elif len(recommendations)==4:
+                breakfast_column,morning_snack,launch_column,dinner_column=st.columns(4)
+                with breakfast_column:
+                    breakfast_choice=st.selectbox(f'Choose your breakfast:',[recipe['Name'] for recipe in recommendations[0]])
+                with morning_snack:
+                    morning_snack=st.selectbox(f'Choose your morning_snack:',[recipe['Name'] for recipe in recommendations[1]])
+                with launch_column:
+                    launch_choice=st.selectbox(f'Choose your launch:',[recipe['Name'] for recipe in recommendations[2]])
+                with dinner_column:
+                    dinner_choice=st.selectbox(f'Choose your dinner:',[recipe['Name'] for recipe in recommendations[3]])
+                choices=[breakfast_choice,morning_snack,launch_choice,dinner_choice]                
+            else:
+                breakfast_column,morning_snack,launch_column,afternoon_snack,dinner_column=st.columns(5)
+                with breakfast_column:
+                    breakfast_choice=st.selectbox(f'Choose your breakfast:',[recipe['Name'] for recipe in recommendations[0]])
+                with morning_snack:
+                    morning_snack=st.selectbox(f'Choose your morning_snack:',[recipe['Name'] for recipe in recommendations[1]])
+                with launch_column:
+                    launch_choice=st.selectbox(f'Choose your launch:',[recipe['Name'] for recipe in recommendations[2]])
+                with afternoon_snack:
+                    afternoon_snack=st.selectbox(f'Choose your afternoon:',[recipe['Name'] for recipe in recommendations[3]])
+                with dinner_column:
+                    dinner_choice=st.selectbox(f'Choose your  dinner:',[recipe['Name'] for recipe in recommendations[4]])
+                choices=[breakfast_choice,morning_snack,launch_choice,afternoon_snack,dinner_choice] 
+            
+            total_nutrition_values={nutrition_value:0 for nutrition_value in nutritions_values}
+            for choice,meals_ in zip(choices,recommendations):
+                for meal in meals_:
+                    if meal['Name']==choice:
+                        for nutrition_value in nutritions_values:
+                            total_nutrition_values[nutrition_value]+=meal[nutrition_value]
+    
+            total_calories_chose=total_nutrition_values['Calories']
+            loss_calories_chose=round(person.calories_calculator()*person.weight_loss)
 
-        st.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Total Calories in Recipes vs {st.session_state.weight_loss_option} Calories:</h5>', unsafe_allow_html=True)
-        total_calories_graph_options = {
-            "xAxis": {
-                "type": "category",
-                "data": ['Total Calories you chose', f"{st.session_state.weight_loss_option} Calories"],
-            },
-            "yAxis": {"type": "value"},
-            "series": [
-                {
-                    "data": [
-                        {"value":total_calories_chose, "itemStyle": {"color":["#33FF8D","#FF3333"][total_calories_chose>loss_calories_chose]}},
-                        {"value": loss_calories_chose, "itemStyle": {"color": "#3339FF"}},
-                    ],
-                    "type": "bar",
-                }
-            ],
-        }
-        st_echarts(options=total_calories_graph_options,height="400px",)
-        st.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Nutritional Values:</h5>', unsafe_allow_html=True)
-        nutritions_graph_options = {
-            "tooltip": {"trigger": "item"},
-            "legend": {"top": "5%", "left": "center"},
-            "series": [
-                {
-                    "name": "Nutritional Values",
-                    "type": "pie",
-                    "radius": ["40%", "70%"],
-                    "avoidLabelOverlap": False,
-                    "itemStyle": {
-                        "borderRadius": 10,
-                        "borderColor": "#fff",
-                        "borderWidth": 2,
-                    },
-                    "label": {"show": False, "position": "center"},
-                    "emphasis": {
-                        "label": {"show": True, "fontSize": "40", "fontWeight": "bold"}
-                    },
-                    "labelLine": {"show": False},
-                    "data": [{"value":round(total_nutrition_values[total_nutrition_value]),"name":total_nutrition_value} for total_nutrition_value in total_nutrition_values],
-                }
-            ],
-        }       
-        st_echarts(options=nutritions_graph_options, height="500px",)
+            st.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Total Calories in Recipes vs {st.session_state.weight_loss_option} Calories:</h5>', unsafe_allow_html=True)
+            total_calories_graph_options = {
+                "xAxis": {
+                    "type": "category",
+                    "data": ['Total Calories you chose', f"{st.session_state.weight_loss_option} Calories"],
+                },
+                "yAxis": {"type": "value"},
+                "series": [
+                    {
+                        "data": [
+                            {"value":total_calories_chose, "itemStyle": {"color":["#33FF8D","#FF3333"][total_calories_chose>loss_calories_chose]}},
+                            {"value": loss_calories_chose, "itemStyle": {"color": "#3339FF"}},
+                        ],
+                        "type": "bar",
+                    }
+                ],
+            }
+            st_echarts(options=total_calories_graph_options,height="400px",)
+            st.markdown(f'<h5 style="text-align: center;font-family:sans-serif;">Nutritional Values:</h5>', unsafe_allow_html=True)
+            nutritions_graph_options = {
+                "tooltip": {"trigger": "item"},
+                "legend": {"top": "5%", "left": "center"},
+                "series": [
+                    {
+                        "name": "Nutritional Values",
+                        "type": "pie",
+                        "radius": ["40%", "70%"],
+                        "avoidLabelOverlap": False,
+                        "itemStyle": {
+                            "borderRadius": 10,
+                            "borderColor": "#fff",
+                            "borderWidth": 2,
+                        },
+                        "label": {"show": False, "position": "center"},
+                        "emphasis": {
+                            "label": {"show": True, "fontSize": "40", "fontWeight": "bold"}
+                        },
+                        "labelLine": {"show": False},
+                        "data": [{"value":round(total_nutrition_values[total_nutrition_value]),"name":total_nutrition_value} for total_nutrition_value in total_nutrition_values],
+                    }
+                ],
+            }       
+            st_echarts(options=nutritions_graph_options, height="500px",)
+        except Exception as e:
+            logging.info(f"Something went wrong: {e}")
 
 display=Display()
 title="<h1 style='text-align: center;'>Generalized Recommendation</h1>"
@@ -284,5 +290,5 @@ def get_user_input_generalized():
             st.success('Recommendation Generated Successfully !', icon="✅")
         with st.container():
             display.display_meal_choices(st.session_state.person,st.session_state.recommendations)
-    logging.info("Input and forward success")
+    logging.info("Input in Generalized and forward success")
 get_user_input_generalized()
